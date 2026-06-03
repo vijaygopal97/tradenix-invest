@@ -83,7 +83,7 @@ export default function AdminUsersPage() {
               </tr>
             )}
             {filtered.map((u) => (
-              <tr key={u._id} className="hover:bg-white/[0.02] transition">
+              <tr key={u._id} className="hover:bg-black/[0.02] transition">
                 <Td>
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 grid place-items-center text-sm font-semibold">

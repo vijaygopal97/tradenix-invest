@@ -17,18 +17,11 @@ import AdminBankPage from './pages/admin/AdminBankPage';
 import AdminRechargesPage from './pages/admin/AdminRechargesPage';
 import AdminWithdrawalsPage from './pages/admin/AdminWithdrawalsPage';
 
-function HomeRoute() {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Loading…</div>;
-  if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
-  return <LandingPage />;
-}
-
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<HomeRoute />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 

@@ -122,13 +122,13 @@ export default function AdminWithdrawalsPage() {
               </tr>
             )}
             {filtered.map((w) => (
-              <tr key={w._id} className="hover:bg-white/[0.02] transition">
+              <tr key={w._id} className="hover:bg-black/[0.02] transition">
                 <Td className="text-muted-foreground whitespace-nowrap">
                   {formatDate(w.createdAt)}
                 </Td>
                 <Td>
                   <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-full bg-white/[0.06] grid place-items-center text-xs font-semibold">
+                    <div className="h-8 w-8 rounded-full bg-black/[0.06] grid place-items-center text-xs font-semibold">
                       {w.user?.name?.[0] ?? '?'}
                     </div>
                     <div>

@@ -15,7 +15,7 @@ import { formatMoney, formatDate } from '../../lib/format';
 
 function BankRow({ label, value, k, copied, onCopy, mono }) {
   return (
-    <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
+    <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/[0.03] border border-black/5">
       <div>
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className={`mt-1 ${mono ? 'font-mono' : ''}`}>{value}</div>
@@ -23,7 +23,7 @@ function BankRow({ label, value, k, copied, onCopy, mono }) {
       <button
         type="button"
         onClick={() => onCopy(value, k)}
-        className="h-9 w-9 grid place-items-center rounded-lg hover:bg-white/5 transition"
+        className="h-9 w-9 grid place-items-center rounded-lg hover:bg-black/[0.04] transition"
       >
         {copied === k ? (
           <Check className="h-4 w-4 text-primary" />
@@ -193,7 +193,7 @@ export default function InvestPage() {
               />
             </Field>
             <Field label="Payment screenshot">
-              <label className="block border-2 border-dashed border-white/10 hover:border-primary/50 rounded-xl px-5 py-8 cursor-pointer transition text-center">
+              <label className="block border-2 border-dashed border-black/10 hover:border-primary/50 rounded-xl px-5 py-8 cursor-pointer transition text-center">
                 <input
                   type="file"
                   accept="image/*"
@@ -221,7 +221,7 @@ export default function InvestPage() {
           {requests.map((r) => (
             <div
               key={r._id}
-              className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition flex-wrap gap-3"
+              className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] hover:bg-black/[0.04] transition flex-wrap gap-3"
             >
               <div>
                 <div className="font-mono text-sm">{formatMoney(r.amount)}</div>

@@ -29,8 +29,8 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout
-      title="Create account"
-      subtitle="Register in under a minute and start investing."
+      title="Open your account"
+      subtitle="Sixty seconds to start compounding."
       footer={
         <>
           Already registered?{' '}

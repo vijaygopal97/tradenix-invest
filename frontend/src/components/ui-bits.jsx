@@ -36,7 +36,7 @@ export function Field({ label, hint, children }) {
 }
 
 const inputBase =
-  'w-full rounded-xl bg-white/[0.04] border border-white/10 px-4 py-3 text-sm outline-none transition placeholder:text-muted-foreground/50 focus:bg-white/[0.06] focus:border-primary/60 focus:ring-2 focus:ring-primary/20';
+  'w-full rounded-xl bg-black/[0.03] border border-black/10 px-4 py-3 text-sm outline-none transition placeholder:text-muted-foreground/50 focus:bg-black/[0.04] focus:border-primary/60 focus:ring-2 focus:ring-primary/20';
 
 export function Input({ className = '', ...props }) {
   return <input {...props} className={`${inputBase} ${className}`} />;
@@ -60,6 +60,7 @@ export function Button({
   size = 'md',
   className = '',
   children,
+  type,
   ...props
 }) {
   const sizes = { sm: 'px-3 py-1.5 text-xs', md: 'px-4 py-2.5 text-sm', lg: 'px-6 py-3.5 text-base' }[
@@ -68,14 +69,14 @@ export function Button({
   const variants = {
     primary:
       'bg-primary text-primary-foreground hover:shadow-[0_10px_30px_-10px] hover:shadow-primary/60 shine-on-hover',
-    ghost: 'text-muted-foreground hover:text-foreground hover:bg-white/5',
-    outline: 'border border-white/10 hover:bg-white/5',
-    soft: 'bg-white/[0.06] hover:bg-white/[0.1]',
+    ghost: 'text-muted-foreground hover:text-foreground hover:bg-black/[0.04]',
+    outline: 'border border-black/10 hover:bg-black/[0.04]',
+    soft: 'bg-black/[0.04] hover:bg-black/[0.06]',
     danger: 'bg-destructive/15 text-destructive border border-destructive/30 hover:bg-destructive/20',
   }[variant];
   return (
     <button
-      type="button"
+      type={type ?? 'button'}
       {...props}
       className={`inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${sizes} ${variants} ${full ? 'w-full' : ''} ${className}`}
     >
@@ -93,7 +94,7 @@ export function Badge({ status }) {
   };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border ${map[status] ?? 'bg-white/5 border-white/10 text-muted-foreground'}`}
+      className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full border ${map[status] ?? 'bg-black/[0.04] border-black/10 text-muted-foreground'}`}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
       {status}
@@ -126,7 +127,7 @@ export function StatCard({ label, value, hint, accent, icon: Icon, delay = 0 }) 
           {hint && <div className="text-xs text-muted-foreground/80 mt-1.5">{hint}</div>}
         </div>
         {Icon && (
-          <div className="h-10 w-10 rounded-xl bg-white/[0.06] grid place-items-center group-hover:bg-white/10 transition">
+          <div className="h-10 w-10 rounded-xl bg-black/[0.04] grid place-items-center group-hover:bg-black/[0.06] transition">
             <Icon className="h-5 w-5 text-primary" />
           </div>
         )}
@@ -137,8 +138,10 @@ export function StatCard({ label, value, hint, accent, icon: Icon, delay = 0 }) 
 
 export function TableWrap({ children }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">{children}</table>
+    <div className="glass-panel overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">{children}</table>
+      </div>
     </div>
   );
 }
@@ -146,7 +149,7 @@ export function TableWrap({ children }) {
 export function Th({ children, className = '' }) {
   return (
     <th
-      className={`text-left px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-white/[0.02] border-b border-white/5 ${className}`}
+      className={`text-left px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-black/[0.02] border-b border-black/5 ${className}`}
     >
       {children}
     </th>
@@ -155,7 +158,7 @@ export function Th({ children, className = '' }) {
 
 export function Td({ children, className = '', colSpan }) {
   return (
-    <td colSpan={colSpan} className={`px-5 py-4 border-b border-white/5 ${className}`}>
+    <td colSpan={colSpan} className={`px-5 py-4 border-b border-black/5 ${className}`}>
       {children}
     </td>
   );
@@ -163,7 +166,7 @@ export function Td({ children, className = '', colSpan }) {
 
 export function Alert({ tone = 'info', children }) {
   const map = {
-    info: 'bg-white/5 border-white/10 text-foreground',
+    info: 'bg-black/[0.04] border-black/10 text-foreground',
     success: 'bg-primary/10 border-primary/30 text-primary',
     error: 'bg-destructive/10 border-destructive/30 text-destructive',
   };
@@ -172,7 +175,7 @@ export function Alert({ tone = 'info', children }) {
 
 export function StatusFilterPills({ options, value, onChange, counts }) {
   return (
-    <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white/[0.04] border border-white/5 flex-wrap">
+    <div className="inline-flex items-center gap-1 p-1 rounded-full bg-black/[0.04] border border-black/5 flex-wrap">
       {options.map((opt) => {
         const active = value === opt.value;
         const count = counts?.[opt.value];
@@ -193,11 +196,5 @@ export function StatusFilterPills({ options, value, onChange, counts }) {
         );
       })}
     </div>
-  );
-}
-
-export function PageLoader() {
-  return (
-    <div className="min-h-screen grid place-items-center text-muted-foreground">Loading…</div>
   );
 }

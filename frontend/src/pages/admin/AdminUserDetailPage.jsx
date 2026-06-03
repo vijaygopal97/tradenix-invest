@@ -81,7 +81,7 @@ function MiniTable({ rows, cols }) {
     <TableWrap>
       <tbody>
         {rows.map((r) => (
-          <tr key={r._id} className="hover:bg-white/[0.02]">
+          <tr key={r._id} className="hover:bg-black/[0.02]">
             {cols.map((c, i) => (
               <Td key={i}>{c(r)}</Td>
             ))}

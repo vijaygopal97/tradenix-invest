@@ -74,7 +74,7 @@ export default function TransactionsPage() {
               const Icon = iconFor[t.type] ?? Coins;
               const positive = t.amount >= 0;
               return (
-                <tr key={t._id} className="hover:bg-white/[0.02] transition">
+                <tr key={t._id} className="hover:bg-black/[0.02] transition">
                   <Td className="text-muted-foreground whitespace-nowrap">
                     {formatDate(t.createdAt)}
                   </Td>

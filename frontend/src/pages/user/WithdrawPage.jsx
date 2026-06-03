@@ -155,7 +155,7 @@ export default function WithdrawPage() {
               label="Bank account proof (optional)"
               hint="Cheque, passbook, or net-banking screenshot with account number and IFSC visible."
             >
-              <label className="block border-2 border-dashed border-white/10 hover:border-primary/50 rounded-xl px-5 py-6 cursor-pointer transition text-center">
+              <label className="block border-2 border-dashed border-black/10 hover:border-primary/50 rounded-xl px-5 py-6 cursor-pointer transition text-center">
                 <input
                   type="file"
                   accept="image/*"
@@ -232,7 +232,7 @@ export default function WithdrawPage() {
               </tr>
             )}
             {withdrawals.map((w) => (
-              <tr key={w._id} className="hover:bg-white/[0.02] transition">
+              <tr key={w._id} className="hover:bg-black/[0.02] transition">
                 <Td className="text-muted-foreground">{formatDate(w.createdAt)}</Td>
                 <Td className="font-mono">{formatMoney(w.amount)}</Td>
                 <Td>{w.bankAccount?.bankName}</Td>
