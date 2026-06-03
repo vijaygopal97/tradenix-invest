@@ -61,6 +61,34 @@ App: `http://localhost:5173`
 - Use HTTPS and a production MongoDB URI
 - Point `CLIENT_URL` and `VITE_API_URL` to your deployed domains
 - Back up `backend/uploads` or move to object storage (S3, etc.)
+- Rebuild on server: `bash deploy/rebuild-production.sh`
+
+## GitHub (`tradenix-invest`)
+
+Source is tracked in the public repo **tradenix-invest** on GitHub.
+
+1. Put a GitHub PAT (repo scope) in `git-pat.txt` at the project root (never commit this file).
+2. After you change code, push everything:
+
+```bash
+cd /var/www/tradenix-venture
+./scripts/push-to-github.sh
+# or with a message:
+./scripts/push-to-github.sh "Describe your change"
+```
+
+The script stages all tracked files, commits if needed, and pushes to `main`. Secrets (`.env`, `git-pat.txt`) and build artifacts (`frontend/dist`, `node_modules`) stay local only.
+
+## `deploy/` folder (server)
+
+| File | Purpose |
+|------|---------|
+| `rebuild-production.sh` | Build frontend + reload PM2 |
+| `nginx-invest.relogico.online.conf` | Nginx template (live copy under `/etc/nginx/`) |
+| `ecosystem.config.cjs` | PM2 template (live copy under `/etc/tradenix/`) |
+| `*.env.production*` | Env templates for production builds |
+
+One-time migration scripts and DB dumps were removed; production does not read from `deploy/` at runtime.
 
 ## Support
 

@@ -3,7 +3,10 @@ backend/node_modules/
 frontend/node_modules/
 backend/.env
 frontend/.env
+frontend/dist/
+git-pat.txt
 deploy/release.tar.gz
 deploy/frontend-src.tar.gz
+deploy/mongo-dump/
 id_rsa
 *.pem
