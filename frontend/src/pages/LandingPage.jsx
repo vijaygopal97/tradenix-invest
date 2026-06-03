@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { BrandLogo } from '../components/BrandLogo';
 import {
   INK,
   INK_SOFT,
@@ -182,24 +183,7 @@ export default function LandingPage() {
 
       <header className="relative z-20">
         <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 py-5">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div
-              className="h-9 w-9 rounded-xl grid place-items-center font-display font-bold text-white"
-              style={{
-                background: `linear-gradient(135deg, ${INK} 0%, ${EMERALD} 100%)`,
-              }}
-            >
-              T
-            </div>
-            <div className="leading-tight">
-              <div className="font-display font-semibold" style={{ color: INK }}>
-                Tradenix
-              </div>
-              <div className="text-[10px] uppercase tracking-[0.18em]" style={{ color: MUTED }}>
-                Venture
-              </div>
-            </div>
-          </Link>
+          <BrandLogo variant="landing" />
           <div className="hidden md:flex items-center gap-8 text-sm" style={{ color: MUTED }}>
             <a href="#how" className="hover:opacity-80 transition" style={{ color: MUTED }}>
               How it works
@@ -274,7 +258,7 @@ export default function LandingPage() {
             >
               {[
                 { i: ShieldCheck, t: '256-bit encrypted' },
-                { i: BadgeCheck, t: 'RBI-aligned bank routing' },
+                { i: BadgeCheck, t: 'Verified bank transfers' },
                 { i: Lock, t: 'Admin-audited withdrawals' },
               ].map((b) => (
                 <div key={b.t} className="inline-flex items-center gap-1.5">

@@ -27,14 +27,14 @@ function BalanceChart() {
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-44">
         <defs>
           <linearGradient id="dg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.62 0.14 158)" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="oklch(0.62 0.14 158)" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={`${d} L 100 100 L 0 100 Z`} fill="url(#dg)" />
         <path
           d={d}
-          stroke="oklch(0.62 0.14 158)"
+          stroke="var(--primary)"
           strokeWidth="2"
           fill="none"
           vectorEffect="non-scaling-stroke"

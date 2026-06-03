@@ -20,27 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-
-function Logo({ small = false, onNavigate }) {
-  return (
-    <Link to="/" className="flex items-center gap-2.5 group" onClick={onNavigate}>
-      <div className="relative">
-        <div className="absolute inset-0 rounded-xl bg-primary/30 blur-md group-hover:bg-primary/50 transition" />
-        <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-accent grid place-items-center font-display font-bold text-primary-foreground">
-          T
-        </div>
-      </div>
-      {!small && (
-        <div className="leading-tight">
-          <div className="font-display font-semibold tracking-tight">Tradenix</div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Venture
-          </div>
-        </div>
-      )}
-    </Link>
-  );
-}
+import { BrandLogo } from './BrandLogo';
 
 function NavItem({ to, icon: Icon, label, end, layoutId, onNavigate }) {
   return (
@@ -76,35 +56,41 @@ function NavItem({ to, icon: Icon, label, end, layoutId, onNavigate }) {
 
 function SidebarContent({ admin, navItems, user, logout, onNavigate, layoutId, navigate }) {
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <Logo onNavigate={onNavigate} />
-        <button
-          type="button"
-          className="lg:hidden h-9 w-9 grid place-items-center rounded-lg border border-black/10 hover:bg-black/[0.04]"
-          onClick={onNavigate}
-          aria-label="Close menu"
-        >
-          <X className="h-5 w-5" />
-        </button>
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <div className="shrink-0 space-y-3">
+        <div className="flex items-center justify-between">
+          <BrandLogo onNavigate={onNavigate} />
+          <button
+            type="button"
+            className="lg:hidden h-9 w-9 grid place-items-center rounded-lg border border-black/10 hover:bg-black/[0.04]"
+            onClick={onNavigate}
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        {admin && (
+          <div className="flex items-center gap-2 px-3">
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+            <span className="text-[11px] uppercase tracking-[0.18em] text-primary">
+              Admin Console
+            </span>
+          </div>
+        )}
+        {!admin && (
+          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 px-3">
+            Personal
+          </div>
+        )}
       </div>
-      {admin && (
-        <div className="flex items-center gap-2 px-3 -mt-1">
-          <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-          <span className="text-[11px] uppercase tracking-[0.18em] text-primary">Admin Console</span>
-        </div>
-      )}
-      {!admin && (
-        <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mt-2 px-3">
-          Personal
-        </div>
-      )}
-      <nav className="flex flex-col gap-1 flex-1">
+
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain py-1 -mx-1 px-1">
         {navItems.map((i) => (
           <NavItem key={i.to} {...i} layoutId={layoutId} onNavigate={onNavigate} />
         ))}
       </nav>
-      <div className="glass-panel p-4 shrink-0">
+
+      <div className="glass-panel shrink-0 border-t border-black/5 p-4">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-sm font-semibold text-primary-foreground">
             {user?.name?.[0] ?? (admin ? 'A' : 'U')}
@@ -126,7 +112,7 @@ function SidebarContent({ admin, navItems, user, logout, onNavigate, layoutId, n
           <LogOut className="h-3.5 w-3.5" /> Sign out
         </button>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -156,7 +142,7 @@ function TopBar({ admin = false, onMenuOpen }) {
             <Menu className="h-5 w-5" />
           </button>
           <div className="lg:hidden">
-            <Logo small />
+            <BrandLogo small />
           </div>
         </div>
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.025] border border-black/5">
@@ -232,8 +218,10 @@ function ShellLayout({ admin, navItems, children }) {
 
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-[min(280px,85vw)] lg:w-64 shrink-0
-          flex flex-col gap-6 p-5 border-r border-black/5 bg-white/90 lg:bg-white/70 backdrop-blur-xl
+          fixed lg:sticky lg:top-0 inset-y-0 left-0 z-50
+          h-screen max-h-[100dvh] w-[min(280px,85vw)] lg:w-64 shrink-0
+          flex flex-col overflow-hidden p-5
+          border-r border-black/5 bg-white/90 lg:bg-white/70 backdrop-blur-xl
           transition-transform duration-300 ease-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
@@ -299,14 +287,14 @@ function Sparkline() {
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-24">
         <defs>
           <linearGradient id="auth-spark" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.62 0.14 158)" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="oklch(0.62 0.14 158)" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={`${d} L 100 100 L 0 100 Z`} fill="url(#auth-spark)" />
         <path
           d={d}
-          stroke="oklch(0.62 0.14 158)"
+          stroke="var(--primary)"
           strokeWidth="1.5"
           fill="none"
           vectorEffect="non-scaling-stroke"
@@ -377,7 +365,7 @@ export function AuthLayout({ title, subtitle, children, footer }) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="flex flex-col p-8 lg:p-14">
-        <Logo />
+        <BrandLogo />
         <div className="flex-1 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
