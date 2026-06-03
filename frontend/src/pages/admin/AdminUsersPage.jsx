@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
+import {
+  AdminCellDate,
+  AdminCellMoney,
+  AdminCellUser,
+  AdminDataTable,
+  AdminMetaStrip,
+  AdminPageHeader,
+  AdminSearchForm,
+  AdminTableRow,
+  AdminToolbar,
+} from '../../components/AdminDataUI';
 
 function formatMoney(n) {
   return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(n ?? 0);
@@ -21,52 +32,52 @@ export default function AdminUsersPage() {
     load();
   }, []);
 
+  const columns = [
+    { key: 'user', label: 'User' },
+    { key: 'balance', label: 'Balance' },
+    { key: 'joined', label: 'Joined' },
+    { key: 'actions', label: '', className: 'admin-col-actions' },
+  ];
+
   return (
     <div className="page">
-      <h1>User management</h1>
-      <form
-        className="inline-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          load();
-        }}
-      >
-        <input
-          placeholder="Search name or email"
+      <AdminPageHeader
+        title="User management"
+        subtitle="Search investors, review balances, and open full account history."
+      />
+      <AdminToolbar>
+        <AdminSearchForm
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={setSearch}
+          onSubmit={load}
+          placeholder="Search by name or email"
         />
-        <button type="submit" className="btn primary">
-          Search
-        </button>
-      </form>
-      <p className="muted">{total} users</p>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Balance</th>
-              <th>Joined</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u._id}>
-                <td>{u.name}</td>
-                <td>{u.email}</td>
-                <td>{formatMoney(u.balance)}</td>
-                <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                <td>
-                  <Link to={`/admin/users/${u._id}`}>View</Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      </AdminToolbar>
+      <AdminMetaStrip items={[{ label: 'Total users', value: total }, { label: 'Results', value: users.length }]} />
+      <AdminDataTable
+        columns={columns}
+        empty={
+          users.length === 0
+            ? search
+              ? 'No users match your search.'
+              : 'No registered users yet.'
+            : null
+        }
+        colSpan={columns.length}
+      >
+        {users.map((u) => (
+          <AdminTableRow key={u._id}>
+            <AdminCellUser name={u.name} email={u.email} />
+            <AdminCellMoney amount={u.balance} formatMoney={formatMoney} />
+            <AdminCellDate date={u.createdAt} />
+            <td className="admin-cell-actions">
+              <Link className="admin-link" to={`/admin/users/${u._id}`}>
+                View details →
+              </Link>
+            </td>
+          </AdminTableRow>
+        ))}
+      </AdminDataTable>
     </div>
   );
 }

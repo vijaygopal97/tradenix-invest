@@ -16,6 +16,7 @@ export default function WithdrawPage() {
   const [accounts, setAccounts] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [bankForm, setBankForm] = useState(emptyBank);
+  const [bankProofFile, setBankProofFile] = useState(null);
   const [bankAccountId, setBankAccountId] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -41,8 +42,15 @@ export default function WithdrawPage() {
     e.preventDefault();
     setError('');
     try {
-      await api.post('/user/bank-accounts', bankForm);
+      const form = new FormData();
+      Object.entries(bankForm).forEach(([key, val]) => form.append(key, val));
+      if (bankProofFile) form.append('accountProof', bankProofFile);
+      await api.post('/user/bank-accounts', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setBankForm(emptyBank);
+      setBankProofFile(null);
+      e.target.reset();
       setMessage('Bank account saved.');
       await load();
     } catch (err) {
@@ -83,6 +91,17 @@ export default function WithdrawPage() {
                 />
               </label>
             ))}
+            <label>
+              Bank account proof (optional)
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setBankProofFile(e.target.files?.[0] || null)}
+              />
+            </label>
+            <p className="field-hint">
+              Upload a cheque, passbook, or net-banking screenshot showing account number and IFSC.
+            </p>
             <button type="submit" className="btn primary">
               Save account
             </button>

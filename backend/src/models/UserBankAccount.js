@@ -7,6 +7,7 @@ const userBankAccountSchema = new mongoose.Schema(
     bankName: { type: String, required: true, trim: true },
     accountNumber: { type: String, required: true, trim: true },
     ifscOrSwift: { type: String, required: true, trim: true },
+    proofUrl: { type: String, trim: true },
   },
   { timestamps: true }
 );

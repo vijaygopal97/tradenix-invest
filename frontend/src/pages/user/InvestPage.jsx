@@ -8,6 +8,7 @@ function formatMoney(n) {
 export default function InvestPage() {
   const [bank, setBank] = useState(null);
   const [amount, setAmount] = useState('');
+  const [paymentDescription, setPaymentDescription] = useState('');
   const [file, setFile] = useState(null);
   const [requests, setRequests] = useState([]);
   const [message, setMessage] = useState('');
@@ -39,11 +40,13 @@ export default function InvestPage() {
     try {
       const form = new FormData();
       form.append('amount', amount);
+      form.append('paymentDescription', paymentDescription.trim());
       form.append('screenshot', file);
       await api.post('/user/recharges', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setAmount('');
+      setPaymentDescription('');
       setFile(null);
       e.target.reset();
       setMessage('Recharge submitted for admin approval.');
@@ -113,6 +116,17 @@ export default function InvestPage() {
               />
             </label>
             <label>
+              Payment description (optional)
+              <textarea
+                rows={3}
+                maxLength={500}
+                placeholder="Reference number, UTR, payer name, or any note for the admin"
+                value={paymentDescription}
+                onChange={(e) => setPaymentDescription(e.target.value)}
+              />
+            </label>
+            <p className="field-hint">Up to 500 characters — helps admin verify your payment faster.</p>
+            <label>
               Payment screenshot
               <input
                 type="file"
@@ -136,7 +150,8 @@ export default function InvestPage() {
                 <th>Date</th>
                 <th>Amount</th>
                 <th>Status</th>
-                <th>Remarks</th>
+                <th>Your note</th>
+                <th>Admin remarks</th>
                 <th>Screenshot</th>
               </tr>
             </thead>
@@ -148,6 +163,7 @@ export default function InvestPage() {
                   <td>
                     <span className={`badge ${r.status}`}>{r.status}</span>
                   </td>
+                  <td>{r.paymentDescription || '—'}</td>
                   <td>{r.adminRemarks || '—'}</td>
                   <td>
                     <a href={uploadUrl(r.screenshotUrl)} target="_blank" rel="noreferrer">
@@ -158,7 +174,7 @@ export default function InvestPage() {
               ))}
               {!requests.length && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={6} className="muted">
                     No recharge requests yet.
                   </td>
                 </tr>

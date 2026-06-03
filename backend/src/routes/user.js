@@ -3,7 +3,11 @@ import path from 'path';
 import { body } from 'express-validator';
 import { authRequired, loadUser } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { uploadRechargeScreenshot, handleMulterError } from '../middleware/upload.js';
+import {
+  uploadRechargeScreenshot,
+  uploadBankAccountProof,
+  handleMulterError,
+} from '../middleware/upload.js';
 import { PlatformBank } from '../models/PlatformBank.js';
 import { RechargeRequest } from '../models/RechargeRequest.js';
 import { WithdrawalRequest } from '../models/WithdrawalRequest.js';
@@ -22,6 +26,10 @@ router.use(authRequired, loadUser);
 
 function rechargePublicPath(filename) {
   return `/uploads/recharges/${path.basename(filename)}`;
+}
+
+function bankProofPublicPath(filename) {
+  return `/uploads/bank-accounts/${path.basename(filename)}`;
 }
 
 router.get('/dashboard', async (req, res, next) => {
@@ -64,10 +72,12 @@ router.post(
       if (!req.file) {
         return res.status(400).json({ message: 'Payment screenshot is required' });
       }
+      const paymentDescription = String(req.body.paymentDescription || '').trim().slice(0, 500);
       const request = await RechargeRequest.create({
         user: req.user._id,
         amount: Number(req.body.amount),
         screenshotUrl: rechargePublicPath(req.file.filename),
+        paymentDescription,
       });
       res.status(201).json({ request });
     } catch (err) {
@@ -100,6 +110,12 @@ router.get('/bank-accounts', async (req, res, next) => {
 
 router.post(
   '/bank-accounts',
+  (req, res, next) => {
+    uploadBankAccountProof(req, res, (err) => {
+      if (err) return handleMulterError(err, req, res, next);
+      next();
+    });
+  },
   [
     body('accountHolderName').trim().notEmpty(),
     body('bankName').trim().notEmpty(),
@@ -111,7 +127,11 @@ router.post(
     try {
       const account = await UserBankAccount.create({
         user: req.user._id,
-        ...req.body,
+        accountHolderName: req.body.accountHolderName,
+        bankName: req.body.bankName,
+        accountNumber: req.body.accountNumber,
+        ifscOrSwift: req.body.ifscOrSwift,
+        ...(req.file ? { proofUrl: bankProofPublicPath(req.file.filename) } : {}),
       });
       res.status(201).json({ account });
     } catch (err) {

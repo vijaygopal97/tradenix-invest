@@ -39,6 +39,12 @@ export const uploadWithdrawalProof = multer({
   fileFilter: imageFilter,
 }).single('paymentProof');
 
+export const uploadBankAccountProof = multer({
+  storage: storage('bank-accounts'),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: imageFilter,
+}).single('accountProof');
+
 export function handleMulterError(err, req, res, next) {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ message: err.message });
