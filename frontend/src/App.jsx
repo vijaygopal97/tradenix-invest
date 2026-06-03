@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminShell, UserShell } from './components/Shell';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import UserDashboardPage from './pages/user/UserDashboardPage';
@@ -16,18 +17,18 @@ import AdminBankPage from './pages/admin/AdminBankPage';
 import AdminRechargesPage from './pages/admin/AdminRechargesPage';
 import AdminWithdrawalsPage from './pages/admin/AdminWithdrawalsPage';
 
-function HomeRedirect() {
+function HomeRoute() {
   const { user, loading } = useAuth();
-  if (loading) return <div className="center-screen">Loading…</div>;
-  if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+  if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Loading…</div>;
+  if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+  return <LandingPage />;
 }
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<HomeRedirect />} />
+        <Route path="/" element={<HomeRoute />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 

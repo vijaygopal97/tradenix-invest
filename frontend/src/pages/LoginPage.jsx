@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuthLayout } from '../components/Shell';
+import { Field, Input, Button, Alert } from '../components/ui-bits';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -19,42 +20,54 @@ export default function LoginPage() {
       const user = await login(email, password);
       navigate(user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
-      if (!err.response) {
-        setError(
-          'Cannot reach the API. Start the backend (port 5000) and MongoDB, then refresh this page.'
-        );
-      } else {
-        setError(err.response.data?.message || 'Login failed');
-      }
+      setError(
+        err.response?.data?.message ||
+          (err.response
+            ? 'Login failed'
+            : 'Cannot reach the API. Check the server and refresh.')
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <AuthLayout title="Sign in">
-      <form onSubmit={onSubmit} className="form">
-        {error && <p className="error">{error}</p>}
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password
-          <input
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to your investor console."
+      footer={
+        <>
+          New here?{' '}
+          <Link to="/register" className="text-primary hover:underline">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-5">
+        {error && <Alert tone="error">{error}</Alert>}
+        <Field label="Email">
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@email.com"
+            required
+          />
+        </Field>
+        <Field label="Password">
+          <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
             required
           />
-        </label>
-        <button type="submit" className="btn primary full" disabled={submitting}>
+        </Field>
+        <Button type="submit" full disabled={submitting}>
           {submitting ? 'Signing in…' : 'Sign in'}
-        </button>
+        </Button>
       </form>
-      <p className="muted center">
-        No account? <Link to="/register">Register</Link>
-      </p>
     </AuthLayout>
   );
 }

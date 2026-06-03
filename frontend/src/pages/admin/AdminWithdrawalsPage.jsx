@@ -1,24 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Check, X, Upload } from 'lucide-react';
 import { api, uploadUrl } from '../../api/client';
 import {
-  AdminCellActions,
-  AdminCellDate,
-  AdminCellInput,
-  AdminCellMoney,
-  AdminCellUser,
-  AdminDataTable,
-  AdminMetaStrip,
-  AdminPageHeader,
-  AdminStatusFilters,
-  AdminTableRow,
-  AdminToolbar,
-} from '../../components/AdminDataUI';
+  Panel,
+  SectionTitle,
+  StatusFilterPills,
+  Input,
+  Button,
+  Badge,
+  Alert,
+  TableWrap,
+  Th,
+  Td,
+} from '../../components/ui-bits';
+import { formatMoney, formatDate } from '../../lib/format';
 
-function formatMoney(n) {
-  return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(n ?? 0);
-}
-
-const FILTER_OPTIONS = ['', 'pending', 'paid', 'rejected'];
+const OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 export default function AdminWithdrawalsPage() {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -28,27 +30,32 @@ export default function AdminWithdrawalsPage() {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
 
-  const load = () =>
-    api.get('/admin/withdrawals', { params: { status: filter || undefined } }).then((res) => {
-      setWithdrawals(res.data.withdrawals);
-    });
+  const loadAll = () =>
+    api.get('/admin/withdrawals').then((res) => setWithdrawals(res.data.withdrawals));
 
   useEffect(() => {
-    load();
-  }, [filter]);
+    loadAll();
+  }, []);
 
-  const counts = useMemo(() => {
-    const c = { '': withdrawals.length };
-    for (const w of withdrawals) {
-      c[w.status] = (c[w.status] || 0) + 1;
-    }
-    return c;
-  }, [withdrawals]);
+  const filtered = useMemo(
+    () => (filter === 'all' ? withdrawals : withdrawals.filter((w) => w.status === filter)),
+    [withdrawals, filter]
+  );
+
+  const counts = useMemo(
+    () => ({
+      all: withdrawals.length,
+      pending: withdrawals.filter((w) => w.status === 'pending').length,
+      paid: withdrawals.filter((w) => w.status === 'paid').length,
+      rejected: withdrawals.filter((w) => w.status === 'rejected').length,
+    }),
+    [withdrawals]
+  );
 
   const process = async (id, status) => {
     setError('');
     if (status === 'paid' && !proofFiles[id]) {
-      setError('Upload a payment proof image (JPEG, PNG, WebP, or GIF) before marking as paid.');
+      setError('Upload payment proof before marking paid.');
       return;
     }
     setBusyId(id);
@@ -63,130 +70,160 @@ export default function AdminWithdrawalsPage() {
         delete next[id];
         return next;
       });
-      await load();
+      await loadAll();
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not update withdrawal. Try again.');
+      setError(err.response?.data?.message || 'Could not update withdrawal.');
     } finally {
       setBusyId(null);
     }
   };
 
-  const columns = [
-    { key: 'date', label: 'Requested' },
-    { key: 'user', label: 'User' },
-    { key: 'amount', label: 'Amount' },
-    { key: 'bank', label: 'Bank account' },
-    { key: 'status', label: 'Status' },
-    { key: 'proof', label: 'Payment proof' },
-    { key: 'remarks', label: 'Admin remarks' },
-    { key: 'actions', label: 'Actions', className: 'admin-col-actions' },
-  ];
-
   return (
-    <div className="page">
-      <AdminPageHeader
-        title="Withdrawal management"
-        subtitle="Review payout requests, upload transfer proof when marking paid, or reject to refund the user's balance."
+    <>
+      <SectionTitle
+        eyebrow="Approvals"
+        title="Withdrawal queue"
+        subtitle="Process payouts, attach proof and notify investors."
       />
-      {error && <p className="error">{error}</p>}
-      <AdminToolbar>
-        <AdminStatusFilters
-          value={filter}
-          onChange={setFilter}
-          options={FILTER_OPTIONS}
-          counts={filter === '' ? counts : undefined}
-        />
-      </AdminToolbar>
-      <AdminMetaStrip
-        items={[
-          { label: 'Showing', value: withdrawals.length },
-          { label: 'Filter', value: filter || 'all' },
-        ]}
+
+      {error && (
+        <div className="mb-4">
+          <Alert tone="error">{error}</Alert>
+        </div>
+      )}
+
+      <StatusFilterPills
+        options={OPTIONS}
+        value={filter}
+        onChange={setFilter}
+        counts={counts}
       />
-      <AdminDataTable
-        columns={columns}
-        empty={
-          withdrawals.length === 0
-            ? filter === 'pending'
-              ? 'No pending withdrawals — you are all caught up.'
-              : 'No withdrawals match this filter.'
-            : null
-        }
-        colSpan={columns.length}
-      >
-        {withdrawals.map((w) => (
-          <AdminTableRow key={w._id}>
-            <AdminCellDate date={w.createdAt} />
-            <AdminCellUser name={w.user?.name} email={w.user?.email} />
-            <AdminCellMoney amount={w.amount} formatMoney={formatMoney} />
-            <td>
-              <span className="admin-user-name">{w.bankAccount?.bankName || '—'}</span>
-              <span className="admin-user-email">{w.bankAccount?.accountNumber}</span>
-              {w.bankAccount?.proofUrl && (
-                <>
-                  <br />
-                  <a
-                    className="admin-link"
-                    href={uploadUrl(w.bankAccount.proofUrl)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Bank proof
-                  </a>
-                </>
-              )}
-            </td>
-            <td>
-              <span className={`badge ${w.status}`}>{w.status}</span>
-            </td>
-            <td>
-              {w.paymentProofUrl ? (
-                <a className="admin-link" href={uploadUrl(w.paymentProofUrl)} target="_blank" rel="noreferrer">
-                  View proof
-                </a>
-              ) : w.status === 'pending' ? (
-                <input
-                  className="admin-file-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setProofFiles({ ...proofFiles, [w._id]: e.target.files?.[0] })
-                  }
-                />
-              ) : (
-                <span className="muted">—</span>
-              )}
-            </td>
-            <AdminCellInput
-              value={remarks[w._id] || ''}
-              onChange={(e) => setRemarks({ ...remarks, [w._id]: e.target.value })}
-              disabled={w.status !== 'pending'}
-            />
-            <AdminCellActions>
-              {w.status === 'pending' && (
-                <>
-                  <button
-                    type="button"
-                    className="btn small primary"
-                    disabled={busyId === w._id}
-                    onClick={() => process(w._id, 'paid')}
-                  >
-                    Mark paid
-                  </button>
-                  <button
-                    type="button"
-                    className="btn small danger"
-                    disabled={busyId === w._id}
-                    onClick={() => process(w._id, 'rejected')}
-                  >
-                    Reject
-                  </button>
-                </>
-              )}
-            </AdminCellActions>
-          </AdminTableRow>
-        ))}
-      </AdminDataTable>
-    </div>
+
+      <Panel className="p-0 overflow-hidden mt-5">
+        <TableWrap>
+          <thead>
+            <tr>
+              <Th>Requested</Th>
+              <Th>User</Th>
+              <Th className="text-right">Amount</Th>
+              <Th>Bank</Th>
+              <Th>Status</Th>
+              <Th>Proof</Th>
+              <Th>Remarks</Th>
+              <Th>Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {!filtered.length && (
+              <tr>
+                <Td colSpan={8} className="text-center text-muted-foreground">
+                  Nothing here.
+                </Td>
+              </tr>
+            )}
+            {filtered.map((w) => (
+              <tr key={w._id} className="hover:bg-white/[0.02] transition">
+                <Td className="text-muted-foreground whitespace-nowrap">
+                  {formatDate(w.createdAt)}
+                </Td>
+                <Td>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-full bg-white/[0.06] grid place-items-center text-xs font-semibold">
+                      {w.user?.name?.[0] ?? '?'}
+                    </div>
+                    <div>
+                      <div className="text-sm">{w.user?.name}</div>
+                      <div className="text-xs text-muted-foreground">{w.user?.email}</div>
+                    </div>
+                  </div>
+                </Td>
+                <Td className="text-right font-mono">{formatMoney(w.amount)}</Td>
+                <Td>
+                  <div className="text-sm">{w.bankAccount?.bankName}</div>
+                  <div className="text-xs text-muted-foreground font-mono">
+                    {w.bankAccount?.accountNumber}
+                  </div>
+                  {w.bankAccount?.proofUrl && (
+                    <a
+                      href={uploadUrl(w.bankAccount.proofUrl)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Bank proof
+                    </a>
+                  )}
+                </Td>
+                <Td>
+                  <Badge status={w.status} />
+                </Td>
+                <Td>
+                  {w.paymentProofUrl ? (
+                    <a
+                      href={uploadUrl(w.paymentProofUrl)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      View
+                    </a>
+                  ) : w.status === 'pending' ? (
+                    <label className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          setProofFiles({ ...proofFiles, [w._id]: e.target.files?.[0] })
+                        }
+                      />
+                      <Upload className="h-3.5 w-3.5" />
+                      {proofFiles[w._id] ? proofFiles[w._id].name.slice(0, 12) + '…' : 'Upload'}
+                    </label>
+                  ) : (
+                    '—'
+                  )}
+                </Td>
+                <Td>
+                  {w.status === 'pending' ? (
+                    <Input
+                      className="!py-2 !text-xs w-40"
+                      placeholder="Optional…"
+                      value={remarks[w._id] || ''}
+                      onChange={(e) => setRemarks({ ...remarks, [w._id]: e.target.value })}
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">{w.adminRemarks ?? '—'}</span>
+                  )}
+                </Td>
+                <Td>
+                  {w.status === 'pending' ? (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={busyId === w._id}
+                        onClick={() => process(w._id, 'paid')}
+                      >
+                        <Check className="h-3.5 w-3.5" /> Paid
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        disabled={busyId === w._id}
+                        onClick={() => process(w._id, 'rejected')}
+                      >
+                        <X className="h-3.5 w-3.5" /> Reject
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </TableWrap>
+      </Panel>
+    </>
   );
 }

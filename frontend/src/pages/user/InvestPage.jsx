@@ -1,8 +1,38 @@
 import { useEffect, useState } from 'react';
+import { Upload, Copy, Check, Banknote, Sparkles } from 'lucide-react';
 import { api, uploadUrl } from '../../api/client';
+import {
+  Panel,
+  SectionTitle,
+  Field,
+  Input,
+  Textarea,
+  Button,
+  Alert,
+  Badge,
+} from '../../components/ui-bits';
+import { formatMoney, formatDate } from '../../lib/format';
 
-function formatMoney(n) {
-  return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(n ?? 0);
+function BankRow({ label, value, k, copied, onCopy, mono }) {
+  return (
+    <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
+      <div>
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className={`mt-1 ${mono ? 'font-mono' : ''}`}>{value}</div>
+      </div>
+      <button
+        type="button"
+        onClick={() => onCopy(value, k)}
+        className="h-9 w-9 grid place-items-center rounded-lg hover:bg-white/5 transition"
+      >
+        {copied === k ? (
+          <Check className="h-4 w-4 text-primary" />
+        ) : (
+          <Copy className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+    </div>
+  );
 }
 
 export default function InvestPage() {
@@ -14,6 +44,7 @@ export default function InvestPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [copied, setCopied] = useState(null);
 
   const load = async () => {
     const [bankRes, reqRes] = await Promise.all([
@@ -27,6 +58,13 @@ export default function InvestPage() {
   useEffect(() => {
     load().catch(() => setError('Failed to load invest page'));
   }, []);
+
+  const copy = (v, k) => {
+    navigator.clipboard?.writeText(v).then(() => {
+      setCopied(k);
+      setTimeout(() => setCopied(null), 1500);
+    });
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -59,54 +97,81 @@ export default function InvestPage() {
   };
 
   return (
-    <div className="page">
-      <h1>Invest (recharge)</h1>
-      <div className="grid two">
-        <section className="panel">
-          <h2>Platform bank details</h2>
-          {!bank ? (
-            <p className="muted">Bank details not configured yet. Contact support.</p>
-          ) : (
-            <dl className="detail-list">
-              <div>
-                <dt>Account holder</dt>
-                <dd>{bank.accountHolderName}</dd>
+    <>
+      <SectionTitle
+        eyebrow="Add funds"
+        title="Invest"
+        subtitle="Transfer to our verified account, then attach your receipt."
+      />
+
+      <div className="grid lg:grid-cols-2 gap-5">
+        <Panel className="relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-accent/15 blur-3xl" />
+          <div className="relative">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-accent">
+              <Banknote className="h-4 w-4" /> Platform bank
+            </div>
+            <h2 className="font-display text-2xl mt-2">Send funds to</h2>
+            {!bank ? (
+              <p className="text-sm text-muted-foreground mt-4">
+                Bank details not configured yet. Contact support.
+              </p>
+            ) : (
+              <div className="mt-6 space-y-3">
+                <BankRow
+                  label="Account holder"
+                  value={bank.accountHolderName}
+                  k="h"
+                  copied={copied}
+                  onCopy={copy}
+                />
+                <BankRow label="Bank" value={bank.bankName} k="b" copied={copied} onCopy={copy} />
+                <BankRow
+                  label="Account number"
+                  value={bank.accountNumber}
+                  k="a"
+                  copied={copied}
+                  onCopy={copy}
+                  mono
+                />
+                <BankRow
+                  label="IFSC / SWIFT"
+                  value={bank.ifscOrSwift}
+                  k="i"
+                  copied={copied}
+                  onCopy={copy}
+                  mono
+                />
+                {bank.branch && (
+                  <BankRow label="Branch" value={bank.branch} k="r" copied={copied} onCopy={copy} />
+                )}
               </div>
-              <div>
-                <dt>Bank</dt>
-                <dd>{bank.bankName}</dd>
+            )}
+            {bank?.instructions && (
+              <div className="mt-5 p-3.5 rounded-xl bg-primary/5 border border-primary/20 text-xs text-primary/90 flex gap-2">
+                <Sparkles className="h-4 w-4 shrink-0" />
+                {bank.instructions}
               </div>
-              <div>
-                <dt>Account number</dt>
-                <dd>{bank.accountNumber}</dd>
-              </div>
-              <div>
-                <dt>IFSC / SWIFT</dt>
-                <dd>{bank.ifscOrSwift}</dd>
-              </div>
-              {bank.branch && (
-                <div>
-                  <dt>Branch</dt>
-                  <dd>{bank.branch}</dd>
-                </div>
-              )}
-              {bank.instructions && (
-                <div>
-                  <dt>Instructions</dt>
-                  <dd>{bank.instructions}</dd>
-                </div>
-              )}
-            </dl>
+            )}
+          </div>
+        </Panel>
+
+        <Panel>
+          <h2 className="font-display text-2xl">Submit recharge</h2>
+          <p className="text-sm text-muted-foreground mt-1">Attach the receipt for verification.</p>
+          {message && (
+            <div className="mt-4">
+              <Alert tone="success">{message}</Alert>
+            </div>
           )}
-        </section>
-        <section className="panel">
-          <h2>Submit recharge</h2>
-          {message && <p className="success">{message}</p>}
-          {error && <p className="error">{error}</p>}
-          <form onSubmit={onSubmit} className="form">
-            <label>
-              Amount
-              <input
+          {error && (
+            <div className="mt-4">
+              <Alert tone="error">{error}</Alert>
+            </div>
+          )}
+          <form onSubmit={onSubmit} className="mt-5 space-y-4">
+            <Field label="Amount (₹)">
+              <Input
                 type="number"
                 min="1"
                 step="0.01"
@@ -114,75 +179,71 @@ export default function InvestPage() {
                 onChange={(e) => setAmount(e.target.value)}
                 required
               />
-            </label>
-            <label>
-              Payment description (optional)
-              <textarea
+            </Field>
+            <Field
+              label="Payment note"
+              hint="UTR, reference, payer name — anything helping verification."
+            >
+              <Textarea
                 rows={3}
                 maxLength={500}
-                placeholder="Reference number, UTR, payer name, or any note for the admin"
                 value={paymentDescription}
                 onChange={(e) => setPaymentDescription(e.target.value)}
+                placeholder="e.g. UTR 88231100"
               />
-            </label>
-            <p className="field-hint">Up to 500 characters — helps admin verify your payment faster.</p>
-            <label>
-              Payment screenshot
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                required
-              />
-            </label>
-            <button type="submit" className="btn primary" disabled={submitting}>
+            </Field>
+            <Field label="Payment screenshot">
+              <label className="block border-2 border-dashed border-white/10 hover:border-primary/50 rounded-xl px-5 py-8 cursor-pointer transition text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  required
+                />
+                <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                <div className="text-sm">{file ? file.name : 'Drop or click to upload'}</div>
+              </label>
+            </Field>
+            <Button type="submit" full disabled={submitting}>
               {submitting ? 'Submitting…' : 'Submit for approval'}
-            </button>
+            </Button>
           </form>
-        </section>
+        </Panel>
       </div>
-      <section className="panel">
-        <h2>Recharge history</h2>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Your note</th>
-                <th>Admin remarks</th>
-                <th>Screenshot</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((r) => (
-                <tr key={r._id}>
-                  <td>{new Date(r.createdAt).toLocaleString()}</td>
-                  <td>{formatMoney(r.amount)}</td>
-                  <td>
-                    <span className={`badge ${r.status}`}>{r.status}</span>
-                  </td>
-                  <td>{r.paymentDescription || '—'}</td>
-                  <td>{r.adminRemarks || '—'}</td>
-                  <td>
-                    <a href={uploadUrl(r.screenshotUrl)} target="_blank" rel="noreferrer">
-                      View
-                    </a>
-                  </td>
-                </tr>
-              ))}
-              {!requests.length && (
-                <tr>
-                  <td colSpan={6} className="muted">
-                    No recharge requests yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+
+      <Panel className="mt-6">
+        <h3 className="font-display text-xl mb-4">Recent recharges</h3>
+        <div className="space-y-2">
+          {!requests.length && (
+            <p className="text-sm text-muted-foreground">No recharges yet.</p>
+          )}
+          {requests.map((r) => (
+            <div
+              key={r._id}
+              className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition flex-wrap gap-3"
+            >
+              <div>
+                <div className="font-mono text-sm">{formatMoney(r.amount)}</div>
+                <div className="text-xs text-muted-foreground">
+                  {formatDate(r.createdAt)} · {r.paymentDescription || '—'}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge status={r.status} />
+                <a
+                  href={uploadUrl(r.screenshotUrl)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Screenshot
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
-      </section>
-    </div>
+      </Panel>
+    </>
   );
 }

@@ -1,141 +1,162 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Check, X, Image as ImageIcon } from 'lucide-react';
 import { api, uploadUrl } from '../../api/client';
 import {
-  AdminCellActions,
-  AdminCellDate,
-  AdminCellInput,
-  AdminCellMoney,
-  AdminCellUser,
-  AdminDataTable,
-  AdminMetaStrip,
-  AdminPageHeader,
-  AdminStatusFilters,
-  AdminTableRow,
-  AdminToolbar,
-} from '../../components/AdminDataUI';
+  Panel,
+  SectionTitle,
+  StatusFilterPills,
+  Input,
+  Button,
+  Badge,
+  TableWrap,
+  Th,
+  Td,
+} from '../../components/ui-bits';
+import { formatMoney, formatDate } from '../../lib/format';
 
-function formatMoney(n) {
-  return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(n ?? 0);
-}
-
-const FILTER_OPTIONS = ['', 'pending', 'approved', 'rejected'];
+const OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 export default function AdminRechargesPage() {
   const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState('pending');
   const [remarks, setRemarks] = useState({});
 
-  const load = () =>
-    api.get('/admin/recharges', { params: { status: filter || undefined } }).then((res) => {
-      setRequests(res.data.requests);
-    });
+  const loadAll = () =>
+    api.get('/admin/recharges').then((res) => setRequests(res.data.requests));
 
   useEffect(() => {
-    load();
-  }, [filter]);
+    loadAll();
+  }, []);
 
-  const counts = useMemo(() => {
-    const c = { '': requests.length };
-    for (const r of requests) {
-      c[r.status] = (c[r.status] || 0) + 1;
-    }
-    return c;
-  }, [requests]);
+  const filtered = useMemo(
+    () => (filter === 'all' ? requests : requests.filter((r) => r.status === filter)),
+    [requests, filter]
+  );
+
+  const counts = useMemo(
+    () => ({
+      all: requests.length,
+      pending: requests.filter((r) => r.status === 'pending').length,
+      approved: requests.filter((r) => r.status === 'approved').length,
+      rejected: requests.filter((r) => r.status === 'rejected').length,
+    }),
+    [requests]
+  );
 
   const review = async (id, status) => {
     await api.patch(`/admin/recharges/${id}`, {
       status,
       adminRemarks: remarks[id] || '',
     });
-    load();
+    loadAll();
   };
 
-  const columns = [
-    { key: 'date', label: 'Submitted' },
-    { key: 'user', label: 'User' },
-    { key: 'amount', label: 'Amount' },
-    { key: 'desc', label: 'Payment note' },
-    { key: 'screenshot', label: 'Screenshot' },
-    { key: 'status', label: 'Status' },
-    { key: 'remarks', label: 'Admin remarks' },
-    { key: 'actions', label: 'Actions', className: 'admin-col-actions' },
-  ];
-
   return (
-    <div className="page">
-      <AdminPageHeader
-        title="Credit approvals"
-        subtitle="Verify payment screenshots and notes from users before approving recharges to their balance."
+    <>
+      <SectionTitle
+        eyebrow="Approvals"
+        title="Credit recharges"
+        subtitle="Verify screenshots and payment notes before approving credits."
       />
-      <AdminToolbar>
-        <AdminStatusFilters
-          value={filter}
-          onChange={setFilter}
-          options={FILTER_OPTIONS}
-          counts={filter === '' ? counts : undefined}
-        />
-      </AdminToolbar>
-      <AdminMetaStrip
-        items={[
-          { label: 'Showing', value: requests.length },
-          { label: 'Filter', value: filter || 'all' },
-        ]}
+
+      <StatusFilterPills
+        options={OPTIONS}
+        value={filter}
+        onChange={setFilter}
+        counts={counts}
       />
-      <AdminDataTable
-        columns={columns}
-        empty={
-          requests.length === 0
-            ? filter === 'pending'
-              ? 'No pending recharges awaiting approval.'
-              : 'No recharges match this filter.'
-            : null
-        }
-        colSpan={columns.length}
-      >
-        {requests.map((r) => (
-          <AdminTableRow key={r._id}>
-            <AdminCellDate date={r.createdAt} />
-            <AdminCellUser name={r.user?.name} email={r.user?.email} />
-            <AdminCellMoney amount={r.amount} formatMoney={formatMoney} />
-            <td className={`admin-desc-cell${r.paymentDescription ? '' : ' empty'}`}>
-              {r.paymentDescription || '—'}
-            </td>
-            <td>
-              <a className="admin-link" href={uploadUrl(r.screenshotUrl)} target="_blank" rel="noreferrer">
-                View screenshot
-              </a>
-            </td>
-            <td>
-              <span className={`badge ${r.status}`}>{r.status}</span>
-            </td>
-            <AdminCellInput
-              value={remarks[r._id] || ''}
-              onChange={(e) => setRemarks({ ...remarks, [r._id]: e.target.value })}
-              disabled={r.status !== 'pending'}
-            />
-            <AdminCellActions>
-              {r.status === 'pending' && (
-                <>
-                  <button
-                    type="button"
-                    className="btn small primary"
-                    onClick={() => review(r._id, 'approved')}
+
+      <Panel className="p-0 overflow-hidden mt-5">
+        <TableWrap>
+          <thead>
+            <tr>
+              <Th>Submitted</Th>
+              <Th>User</Th>
+              <Th className="text-right">Amount</Th>
+              <Th>Note</Th>
+              <Th>Receipt</Th>
+              <Th>Status</Th>
+              <Th>Remarks</Th>
+              <Th>Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {!filtered.length && (
+              <tr>
+                <Td colSpan={8} className="text-center text-muted-foreground">
+                  Nothing here.
+                </Td>
+              </tr>
+            )}
+            {filtered.map((r) => (
+              <tr key={r._id} className="hover:bg-white/[0.02] transition">
+                <Td className="text-muted-foreground whitespace-nowrap">
+                  {formatDate(r.createdAt)}
+                </Td>
+                <Td>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-full bg-white/[0.06] grid place-items-center text-xs font-semibold">
+                      {r.user?.name?.[0] ?? '?'}
+                    </div>
+                    <div>
+                      <div className="text-sm">{r.user?.name}</div>
+                      <div className="text-xs text-muted-foreground">{r.user?.email}</div>
+                    </div>
+                  </div>
+                </Td>
+                <Td className="text-right font-mono">{formatMoney(r.amount)}</Td>
+                <Td className="text-muted-foreground max-w-[180px] truncate">
+                  {r.paymentDescription || '—'}
+                </Td>
+                <Td>
+                  <a
+                    href={uploadUrl(r.screenshotUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
                   >
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    className="btn small danger"
-                    onClick={() => review(r._id, 'rejected')}
-                  >
-                    Reject
-                  </button>
-                </>
-              )}
-            </AdminCellActions>
-          </AdminTableRow>
-        ))}
-      </AdminDataTable>
-    </div>
+                    <ImageIcon className="h-3.5 w-3.5" /> View
+                  </a>
+                </Td>
+                <Td>
+                  <Badge status={r.status} />
+                </Td>
+                <Td>
+                  {r.status === 'pending' ? (
+                    <Input
+                      className="!py-2 !text-xs w-44"
+                      placeholder="Optional remarks…"
+                      value={remarks[r._id] || ''}
+                      onChange={(e) => setRemarks({ ...remarks, [r._id]: e.target.value })}
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">{r.adminRemarks || '—'}</span>
+                  )}
+                </Td>
+                <Td>
+                  {r.status === 'pending' ? (
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => review(r._id, 'approved')}>
+                        <Check className="h-3.5 w-3.5" /> Approve
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => review(r._id, 'rejected')}>
+                        <X className="h-3.5 w-3.5" /> Reject
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </TableWrap>
+      </Panel>
+    </>
   );
 }

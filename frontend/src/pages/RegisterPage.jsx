@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuthLayout } from '../components/Shell';
+import { Field, Input, Button, Alert } from '../components/ui-bits';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -27,34 +28,44 @@ export default function RegisterPage() {
   };
 
   return (
-    <AuthLayout title="Create account">
-      <form onSubmit={onSubmit} className="form">
-        {error && <p className="error">{error}</p>}
-        <label>
-          Full name
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
-        </label>
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password (min 6 characters)
-          <input
+    <AuthLayout
+      title="Create account"
+      subtitle="Register in under a minute and start investing."
+      footer={
+        <>
+          Already registered?{' '}
+          <Link to="/login" className="text-primary hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-5">
+        {error && <Alert tone="error">{error}</Alert>}
+        <Field label="Full name">
+          <Input value={name} onChange={(e) => setName(e.target.value)} required />
+        </Field>
+        <Field label="Email">
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </Field>
+        <Field label="Password" hint="Minimum 6 characters">
+          <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             minLength={6}
             required
           />
-        </label>
-        <button type="submit" className="btn primary full" disabled={submitting}>
+        </Field>
+        <Button type="submit" full disabled={submitting}>
           {submitting ? 'Creating…' : 'Register'}
-        </button>
+        </Button>
       </form>
-      <p className="muted center">
-        Already registered? <Link to="/login">Sign in</Link>
-      </p>
     </AuthLayout>
   );
 }

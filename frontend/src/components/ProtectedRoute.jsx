@@ -6,7 +6,7 @@ export function ProtectedRoute({ role }) {
 
   if (loading) {
     return (
-      <div className="center-screen">
+      <div className="min-h-screen grid place-items-center text-muted-foreground">
         <p>Loading…</p>
       </div>
     );

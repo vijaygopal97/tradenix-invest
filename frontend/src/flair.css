@@ -1,0 +1,204 @@
+@import "tailwindcss" source(none);
+@source "./";;
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-glass: var(--glass);
+  --color-glass-border: var(--glass-border);
+  --color-ink: var(--ink);
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --shadow-glow: 0 30px 80px -30px color-mix(in oklab, var(--primary) 55%, transparent);
+  --shadow-card: 0 1px 0 0 oklch(1 0 0 / 0.04) inset, 0 20px 40px -24px oklch(0 0 0 / 0.6);
+}
+
+:root {
+  --radius: 1rem;
+
+  /* Deep ink fintech palette */
+  --background: oklch(0.16 0.025 260);
+  --ink: oklch(0.11 0.025 260);
+  --foreground: oklch(0.97 0.005 250);
+
+  --card: oklch(0.21 0.028 262);
+  --card-foreground: oklch(0.97 0.005 250);
+  --popover: oklch(0.19 0.028 262);
+  --popover-foreground: oklch(0.97 0.005 250);
+
+  --primary: oklch(0.78 0.17 158); /* Electric emerald */
+  --primary-foreground: oklch(0.16 0.04 160);
+
+  --secondary: oklch(0.27 0.03 262);
+  --secondary-foreground: oklch(0.97 0.005 250);
+
+  --muted: oklch(0.24 0.025 262);
+  --muted-foreground: oklch(0.7 0.02 258);
+
+  --accent: oklch(0.82 0.16 84); /* Warm gold */
+  --accent-foreground: oklch(0.2 0.04 80);
+
+  --destructive: oklch(0.66 0.21 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --success: oklch(0.78 0.17 158);
+  --warning: oklch(0.82 0.16 84);
+
+  --border: oklch(1 0 0 / 0.08);
+  --input: oklch(1 0 0 / 0.06);
+  --ring: oklch(0.78 0.17 158 / 0.6);
+
+  --glass: oklch(1 0 0 / 0.04);
+  --glass-border: oklch(1 0 0 / 0.08);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background:
+      radial-gradient(1200px 600px at 80% -10%, oklch(0.78 0.17 158 / 0.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, oklch(0.6 0.18 280 / 0.10), transparent 60%),
+      radial-gradient(700px 400px at 50% 110%, oklch(0.82 0.16 84 / 0.06), transparent 60%),
+      var(--color-background);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: oklch(0.78 0.17 158 / 0.35);
+    color: var(--color-foreground);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(1 0 0 / 0.08);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(1 0 0 / 0.16); }
+}
+
+@utility glass-panel {
+  background: linear-gradient(180deg, oklch(1 0 0 / 0.04), oklch(1 0 0 / 0.015));
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-2xl);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-card);
+}
+
+@utility glass-panel-strong {
+  background: linear-gradient(180deg, oklch(1 0 0 / 0.07), oklch(1 0 0 / 0.02));
+  border: 1px solid oklch(1 0 0 / 0.12);
+  border-radius: var(--radius-2xl);
+  backdrop-filter: blur(24px);
+}
+
+@utility text-gradient {
+  background: linear-gradient(135deg, oklch(0.97 0.005 250), oklch(0.78 0.17 158));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-gold {
+  background: linear-gradient(135deg, oklch(0.82 0.16 84), oklch(0.78 0.17 158));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility grid-pattern {
+  background-image:
+    linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+@utility shine-on-hover {
+  position: relative;
+  overflow: hidden;
+}
+.shine-on-hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, oklch(1 0 0 / 0.12) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+.shine-on-hover:hover::after { transform: translateX(100%); }
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 oklch(0.78 0.17 158 / 0.5); }
+  100% { box-shadow: 0 0 0 14px oklch(0.78 0.17 158 / 0); }
+}
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-float { animation: float-y 5s ease-in-out infinite; }
+.animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+.animate-ticker { animation: ticker 40s linear infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.06), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}

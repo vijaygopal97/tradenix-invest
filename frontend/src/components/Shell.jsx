@@ -1,100 +1,300 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  LayoutDashboard,
+  Wallet,
+  ArrowUpRight,
+  ArrowDownLeft,
+  History,
+  Users,
+  Percent,
+  Building2,
+  Inbox,
+  LogOut,
+  ShieldCheck,
+  Bell,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api/client';
 
-export function UserShell() {
-  const { user, logout } = useAuth();
-  const links = [
-    { to: '/dashboard', label: 'Dashboard' },
-    { to: '/invest', label: 'Invest' },
-    { to: '/withdraw', label: 'Withdraw' },
-    { to: '/transactions', label: 'History' },
-  ];
-
+function Logo({ small = false }) {
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark">TV</span>
-          <div>
-            <strong>Tradenix Venture</strong>
-            <small>Credit growth platform</small>
+    <Link to="/" className="flex items-center gap-2.5 group">
+      <div className="relative">
+        <div className="absolute inset-0 rounded-xl bg-primary/40 blur-md group-hover:bg-primary/60 transition" />
+        <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-accent grid place-items-center font-display font-bold text-primary-foreground">
+          T
+        </div>
+      </div>
+      {!small && (
+        <div className="leading-tight">
+          <div className="font-display font-semibold tracking-tight">Tradenix</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            Venture
           </div>
         </div>
-        <nav className="nav">
-          {links.map((l) => (
-            <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? 'active' : '')}>
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="user-chip">
-          <span>{user?.name}</span>
-          <button type="button" className="btn ghost" onClick={logout}>
-            Log out
-          </button>
-        </div>
-      </header>
-      <main className="main">
-        <Outlet />
-      </main>
-    </div>
+      )}
+    </Link>
   );
 }
 
-export function AdminShell() {
-  const { user, logout } = useAuth();
-  const links = [
-    { to: '/admin', label: 'Overview', end: true },
-    { to: '/admin/users', label: 'Users' },
-    { to: '/admin/interest', label: 'Interest' },
-    { to: '/admin/bank', label: 'Bank details' },
-    { to: '/admin/recharges', label: 'Recharges' },
-    { to: '/admin/withdrawals', label: 'Withdrawals' },
-  ];
+function NavItem({ to, icon: Icon, label, end }) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition group ${
+          isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <motion.div
+              layoutId="nav-active"
+              className="absolute inset-0 rounded-xl bg-white/5 border border-white/10"
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
+          <Icon className="relative h-4 w-4 shrink-0" strokeWidth={isActive ? 2.4 : 1.8} />
+          <span className="relative">{label}</span>
+          {isActive && (
+            <div className="relative ml-auto h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_12px] shadow-primary" />
+          )}
+        </>
+      )}
+    </NavLink>
+  );
+}
+
+function TopBar({ admin = false }) {
+  const [rate, setRate] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = admin ? '/admin/interest' : '/user/dashboard';
+    const fetcher = admin
+      ? () => api.get('/admin/interest').then((r) => r.data.logs?.[0]?.dailyPercent)
+      : () => api.get('/user/dashboard').then((r) => r.data.dailyInterestPercent);
+    fetcher()
+      .then((v) => setRate(v ?? null))
+      .catch(() => {});
+  }, [admin, location.pathname]);
 
   return (
-    <div className="app-shell admin">
-      <aside className="sidebar">
-        <div className="brand stacked">
-          <span className="brand-mark">TV</span>
-          <strong>Tradenix Admin</strong>
+    <header className="sticky top-0 z-30 border-b border-white/5 bg-background/60 backdrop-blur-xl">
+      <div className="flex items-center justify-between px-6 lg:px-10 py-3.5">
+        <div className="flex items-center gap-3 lg:hidden">
+          <Logo small />
         </div>
-        <nav className="side-nav">
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.end}
-              className={({ isActive }) => (isActive ? 'active' : '')}
-            >
-              {l.label}
-            </NavLink>
+        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/5">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+          </span>
+          <span className="text-xs text-muted-foreground">Live rate</span>
+          <span className="text-xs font-mono font-semibold text-primary">
+            {rate != null ? `${Number(rate).toFixed(2)}% / day` : '—'}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="relative h-9 w-9 grid place-items-center rounded-full border border-white/5 hover:bg-white/5 transition"
+            aria-label="Notifications"
+          >
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-accent" />
+          </button>
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5">
+            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-accent" />
+            <span className="text-sm font-medium">{admin ? 'Admin' : 'Investor'}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function ShellLayout({ admin, navItems, children }) {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="min-h-screen flex">
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col gap-6 p-5 border-r border-white/5 bg-ink/40 backdrop-blur-xl">
+        <Logo />
+        {admin && (
+          <div className="flex items-center gap-2 px-3 -mt-1">
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+            <span className="text-[11px] uppercase tracking-[0.18em] text-primary">
+              Admin Console
+            </span>
+          </div>
+        )}
+        {!admin && (
+          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 mt-2 px-3">
+            Personal
+          </div>
+        )}
+        <nav className="flex flex-col gap-1">
+          {navItems.map((i) => (
+            <NavItem key={i.to} {...i} />
           ))}
         </nav>
-        <div className="sidebar-foot">
-          <p>{user?.email}</p>
-          <button type="button" className="btn ghost full" onClick={logout}>
-            Log out
+        <div className="mt-auto glass-panel p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-sm font-semibold text-primary-foreground">
+              {user?.name?.[0] ?? (admin ? 'A' : 'U')}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate">{user?.name}</div>
+              <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-3 w-full flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground py-2 rounded-lg border border-white/5 hover:bg-white/5 transition"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Sign out
           </button>
         </div>
       </aside>
-      <main className="main admin-main">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <TopBar admin={admin} />
+        <main className="flex-1 p-6 lg:p-10">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="max-w-7xl mx-auto"
+          >
+            {children ?? <Outlet />}
+          </motion.div>
+        </main>
+      </div>
     </div>
   );
 }
 
-export function AuthLayout({ title, children }) {
+export function UserShell() {
+  const items = [
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/invest', icon: ArrowDownLeft, label: 'Invest' },
+    { to: '/withdraw', icon: ArrowUpRight, label: 'Withdraw' },
+    { to: '/transactions', icon: History, label: 'History' },
+  ];
+  return <ShellLayout admin={false} navItems={items} />;
+}
+
+export function AdminShell() {
+  const items = [
+    { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
+    { to: '/admin/users', icon: Users, label: 'Users' },
+    { to: '/admin/interest', icon: Percent, label: 'Interest' },
+    { to: '/admin/bank', icon: Building2, label: 'Bank details' },
+    { to: '/admin/recharges', icon: Inbox, label: 'Recharges' },
+    { to: '/admin/withdrawals', icon: Wallet, label: 'Withdrawals' },
+  ];
+  return <ShellLayout admin navItems={items} />;
+}
+
+function Sparkline() {
+  const pts = [10, 18, 14, 28, 22, 36, 32, 48, 42, 56, 60, 72, 68, 82];
+  const max = Math.max(...pts);
+  const d = pts
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${(i / (pts.length - 1)) * 100} ${100 - (p / max) * 100}`)
+    .join(' ');
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <Link to="/" className="brand centered">
-          <span className="brand-mark">TV</span>
-          <strong>Tradenix Venture</strong>
-        </Link>
-        <h1>{title}</h1>
-        {children}
+    <div className="mt-6">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-24">
+        <defs>
+          <linearGradient id="auth-spark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="oklch(0.78 0.17 158)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="oklch(0.78 0.17 158)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={`${d} L 100 100 L 0 100 Z`} fill="url(#auth-spark)" />
+        <path
+          d={d}
+          stroke="oklch(0.78 0.17 158)"
+          strokeWidth="1.5"
+          fill="none"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function AuthVisual() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.7, ease: 'easeOut' }}
+      className="relative w-full max-w-md aspect-[4/5]"
+    >
+      <div className="absolute inset-0 glass-panel-strong p-8 flex flex-col">
+        <div className="flex items-center justify-between">
+          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Portfolio</div>
+          <div className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+            Live
+          </div>
+        </div>
+        <div className="mt-6">
+          <div className="text-xs text-muted-foreground">Total balance</div>
+          <div className="font-display text-4xl mt-1 text-gradient">Credit growth</div>
+        </div>
+        <Sparkline />
+        <div className="mt-auto grid grid-cols-3 gap-3">
+          {[
+            { l: 'Daily', v: 'Rate' },
+            { l: 'Secure', v: '256-bit' },
+            { l: 'Admin', v: 'Review' },
+          ].map((s) => (
+            <div key={s.l} className="rounded-xl bg-white/5 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{s.l}</div>
+              <div className="font-mono mt-1 text-sm">{s.v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+export function AuthLayout({ title, subtitle, children, footer }) {
+  return (
+    <div className="min-h-screen grid lg:grid-cols-2">
+      <div className="flex flex-col p-8 lg:p-14">
+        <Logo />
+        <div className="flex-1 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="w-full max-w-sm"
+          >
+            <h1 className="text-3xl font-display font-semibold tracking-tight">{title}</h1>
+            {subtitle && <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>}
+            <div className="mt-8">{children}</div>
+            {footer && (
+              <div className="mt-6 text-sm text-muted-foreground text-center">{footer}</div>
+            )}
+          </motion.div>
+        </div>
+        <div className="text-xs text-muted-foreground/60">© 2026 Tradenix Venture. Capital at risk.</div>
+      </div>
+      <div className="relative hidden lg:block overflow-hidden border-l border-white/5">
+        <div className="absolute inset-0 grid-pattern opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
+        <div className="absolute inset-0 flex items-center justify-center p-12">
+          <AuthVisual />
+        </div>
       </div>
     </div>
   );

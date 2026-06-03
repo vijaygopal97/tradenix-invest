@@ -5,6 +5,7 @@ backend/.env
 frontend/.env
 frontend/dist/
 git-pat.txt
+Reference UIs/extracted/
 deploy/release.tar.gz
 deploy/frontend-src.tar.gz
 deploy/mongo-dump/
